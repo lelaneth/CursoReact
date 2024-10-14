@@ -1,18 +1,23 @@
-import React from 'react'
-import { getCategories } from '../components/services/products.service';
+import React from "react";
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "../firebase";
 
 export const useCategory = () => {
-    const [category, setCategory] = React.useState([]);
+  const [category, setCategory] = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
 
-    React.useEffect(() => {
-        getCategories()
-        .then((response) => {
-            setCategory(response.data)
-        })
-        .catch((error) => {
-            console.log(error)
-        })
-    }, []);
+  React.useEffect(() => {
+    const productsCollection = collection(db, "categories");
 
-    return { category }
+    getDocs(productsCollection)
+      .then((snapshot) => {
+        setCategory(
+          snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+        );
+      })
+      .catch((error) => console.log(error))
+      .finally(() => setLoading(false));
+  }, []);
+
+  return { category, loading };
 };
